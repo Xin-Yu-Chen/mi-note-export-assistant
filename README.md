@@ -50,7 +50,7 @@
 
 ## 下载即用（Windows）
 
-到右侧 **[Releases](../../releases)** 下载 `小米笔记助手.exe`（或安装包 `Setup.exe`），双击运行即可，**无需安装 Python**。
+到右侧 **[Releases](../../releases)** 下载 `MiNoteExportAssistant-v1.0.0-windows-x64.exe`（单文件便携版，下载后可自行重命名为「小米笔记助手.exe」），双击运行即可，**无需安装 Python**。
 
 > 本项目**没有购买代码签名证书**，因此首次运行可能出现 Windows 保护提示，这是未签名开源软件的常见现象：
 >
@@ -59,7 +59,7 @@
 > - **杀毒软件误报**：PyInstaller 单文件程序可能被误报，可加信任或改用“从源码运行”（代码完全可审计）。
 >
 > 想验证文件未被篡改：每个 Release 都附 `SHA256SUMS.txt`，下载后在该目录执行
-> `certutil -hashfile 小米笔记助手.exe SHA256`，与文件内的值比对。
+> `certutil -hashfile MiNoteExportAssistant-v1.0.0-windows-x64.exe SHA256`，与文件内的值比对（若已重命名，换成实际文件名即可）。
 
 ### 三个按钮
 
