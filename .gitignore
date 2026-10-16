@@ -1,0 +1,44 @@
+# ===== 个人隐私 / 笔记数据（绝不能提交）=====
+.browser-profile/
+mi_notes.db
+mi_notes*.db
+mi_notes_data.json
+mi_notes_export.json
+*.json
+*.docx
+cookie.txt
+*.log
+
+# ===== 构建产物 =====
+build/
+dist/
+*.spec.bak
+*.pkg
+*.manifest
+installer/Output/
+release/
+
+# 图标由 tools/make_icon.py 生成（打包时自动执行），不入库
+assets/icon.ico
+assets/icon.png
+
+# 本地排查 / 临时文件
+_net.txt
+push_log.txt
+_*.txt
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ===== 系统 / 编辑器 =====
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
