@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-小米笔记导出助手 · 图形界面（MVP-2）
-====================================
+小米笔记导出助手 · 图形界面（customtkinter 现代圆角版）
+========================================================
 三个主按钮：① 登录小米账号　② 立即同步（增量）　③ 导出 Word
 浏览器抓取在后台线程运行，界面不卡顿；日志与进度实时显示。
 
@@ -16,7 +16,9 @@ import traceback
 from pathlib import Path
 
 import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+from tkinter import messagebox
+
+import customtkinter as ctk
 
 import mi_note_core as core
 
@@ -31,6 +33,26 @@ if getattr(sys, "frozen", False):
     except Exception:
         pass
 
+
+# ---------------------------------------------------------------------------
+# 视觉主题（对齐产品官网的蓝青现代风）
+# ---------------------------------------------------------------------------
+BG = "#eef4fb"          # 窗口底色，浅蓝灰
+CARD = "#ffffff"        # 卡片白
+LINE = "#e1ecf5"        # 卡片描边
+BG_SOFT = "#f3f8fd"     # 浅蓝胶囊
+INK = "#0e2438"         # 主文字
+INK2 = "#42596e"        # 次文字
+INK3 = "#7b90a3"        # 弱文字
+BLUE = "#2f7cf6"        # 主蓝
+BLUE_H = "#1565d8"      # 主蓝 hover
+DEEP = "#1565d8"        # 深蓝
+DEEP_H = "#0f4fa8"
+CYAN = "#06b6d4"        # 青
+CYAN_H = "#0891b2"
+TERM_BG = "#0e2233"     # 终端底
+TERM_FG = "#bfe0f5"     # 终端字
+FONT = "微软雅黑"
 
 CRASH_LOG = core.HERE / "crash.log"
 
@@ -62,20 +84,16 @@ def detect_browser():
     return None
 
 
-class App(tk.Tk):
+class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("小米笔记导出助手")
-        self.geometry("760x600")
-        self.minsize(680, 540)
+        self.geometry("880x700")
+        self.minsize(780, 640)
+        self.configure(fg_color=BG)
         self.q = queue.Queue()
         self.worker = None
         self.busy = False
-
-        try:
-            ttk.Style(self).theme_use("clam")
-        except Exception:
-            pass
 
         self._build_ui()
         self.report_callback_exception = self._on_tk_error
@@ -84,62 +102,117 @@ class App(tk.Tk):
         self.after(150, self._drain)
 
     # ------------------------------------------------------------------ UI
+    def _font(self, size, bold=False):
+        return ctk.CTkFont(family=FONT, size=size,
+                           weight="bold" if bold else "normal")
+
     def _build_ui(self):
-        pad = {"padx": 12, "pady": 6}
-        font_btn = ("微软雅黑", 11)
-        font_main = ("微软雅黑", 10)
+        # ---------------- 顶部品牌区 ----------------
+        head = ctk.CTkFrame(self, fg_color="transparent")
+        head.pack(fill="x", padx=24, pady=(22, 10))
 
-        # 标题
-        head = ttk.Frame(self)
-        head.pack(fill="x", **pad)
-        ttk.Label(head, text="小米笔记导出助手",
-                  font=("微软雅黑", 16, "bold")).pack(side="left")
+        # 右侧状态 + 打开文件夹（先 pack 右侧，避免被左栏挤压）
+        right = ctk.CTkFrame(head, fg_color="transparent")
+        right.pack(side="right")
         self.status_var = tk.StringVar(value="正在读取本地数据…")
-        ttk.Label(head, textvariable=self.status_var,
-                  font=("微软雅黑", 9), foreground="#666").pack(side="right")
+        self.status_lbl = ctk.CTkLabel(
+            right, textvariable=self.status_var, font=self._font(12),
+            text_color=INK2, fg_color=BG_SOFT, corner_radius=10,
+            padx=14, pady=7)
+        self.status_lbl.pack(anchor="e", pady=(0, 8))
+        self.btn_open = ctk.CTkButton(
+            right, text="打开数据文件夹", width=160, height=34,
+            corner_radius=10, fg_color="transparent",
+            border_width=1, border_color=LINE, text_color=INK2,
+            hover_color="#e6f1fb", font=self._font(12),
+            command=self.on_open_dir)
+        self.btn_open.pack(anchor="e")
 
-        # 按钮区
-        btns = ttk.Frame(self)
-        btns.pack(fill="x", padx=12, pady=(2, 6))
-        self.btn_login = ttk.Button(btns, text="① 登录小米账号", command=self.on_login)
-        self.btn_sync = ttk.Button(btns, text="② 立即同步（增量）", command=self.on_sync)
-        self.btn_export = ttk.Button(btns, text="③ 导出 Word", command=self.on_export)
-        self.btn_open = ttk.Button(btns, text="打开文件夹", command=self.on_open_dir)
-        self.buttons = [self.btn_login, self.btn_sync, self.btn_export, self.btn_open]
-        for b in self.buttons:
-            b.pack(side="left", expand=True, fill="x", padx=4)
+        # 左侧品牌
+        brand = ctk.CTkFrame(head, fg_color="transparent")
+        brand.pack(side="left")
+        logo = ctk.CTkLabel(
+            brand, text="笔", width=44, height=44, corner_radius=13,
+            fg_color=BLUE, text_color="#ffffff",
+            font=ctk.CTkFont(family=FONT, size=21, weight="bold"))
+        logo.pack(side="left", padx=(0, 13))
+        titles = ctk.CTkFrame(brand, fg_color="transparent")
+        titles.pack(side="left")
+        ctk.CTkLabel(titles, text="小米笔记导出助手",
+                     font=self._font(21, True), text_color=INK).pack(anchor="w")
+        ctk.CTkLabel(titles, text="Mi Note Export Assistant",
+                     font=self._font(11), text_color=INK3).pack(anchor="w")
 
-        # 选项
-        opt = ttk.Frame(self)
-        opt.pack(fill="x", padx=12)
+        # ---------------- 三个主操作按钮 ----------------
+        btns = ctk.CTkFrame(self, fg_color="transparent")
+        btns.pack(fill="x", padx=20, pady=(8, 4))
+        self.btn_login = ctk.CTkButton(
+            btns, height=88, corner_radius=16, fg_color=BLUE, hover_color=BLUE_H,
+            text_color="#fff", font=self._font(14, True),
+            text="① 登录小米账号\n扫码登录 · 免 F12",
+            command=self.on_login)
+        self.btn_sync = ctk.CTkButton(
+            btns, height=88, corner_radius=16, fg_color=DEEP, hover_color=DEEP_H,
+            text_color="#fff", font=self._font(14, True),
+            text="② 立即同步\n增量抓取 · 只拉新增",
+            command=self.on_sync)
+        self.btn_export = ctk.CTkButton(
+            btns, height=88, corner_radius=16, fg_color=CYAN, hover_color=CYAN_H,
+            text_color="#fff", font=self._font(14, True),
+            text="③ 导出 Word\n一键排版 · 含图片",
+            command=self.on_export)
+        self.buttons = [self.btn_login, self.btn_sync, self.btn_export]
+        for i, b in enumerate(self.buttons):
+            b.grid(row=0, column=i, sticky="ew", padx=6)
+            btns.grid_columnconfigure(i, weight=1)
+
+        # ---------------- 选项开关 ----------------
+        opt = ctk.CTkFrame(self, fg_color="transparent")
+        opt.pack(fill="x", padx=24, pady=(10, 2))
         self.headless_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(opt, text="无界面浏览器（已登录后可勾选，后台静默同步）",
-                        variable=self.headless_var).pack(side="left")
+        ctk.CTkSwitch(
+            opt, text="无界面浏览器（已登录后可勾选，后台静默同步）",
+            variable=self.headless_var, font=self._font(12),
+            progress_color=BLUE, fg_color="#c7dcea",
+            button_color="#ffffff", button_hover_color="#eaf4ff",
+            switch_width=44, switch_height=22).pack(side="left")
 
-        # 进度
-        prog = ttk.Frame(self)
-        prog.pack(fill="x", padx=12, pady=(8, 2))
-        self.progress = ttk.Progressbar(prog, mode="determinate", maximum=100)
+        # ---------------- 进度卡片 ----------------
+        pcard = ctk.CTkFrame(self, fg_color=CARD, corner_radius=16,
+                             border_width=1, border_color=LINE)
+        pcard.pack(fill="x", padx=20, pady=(10, 6))
+        pinner = ctk.CTkFrame(pcard, fg_color="transparent")
+        pinner.pack(fill="x", padx=18, pady=15)
+        self.progress = ctk.CTkProgressBar(
+            pinner, height=12, corner_radius=6,
+            fg_color="#e6f0f9", progress_color=BLUE, mode="determinate")
         self.progress.pack(side="left", fill="x", expand=True)
+        self.progress.set(0)
         self.prog_var = tk.StringVar(value="就绪")
-        ttk.Label(prog, textvariable=self.prog_var, width=22,
-                  font=("微软雅黑", 9)).pack(side="right", padx=(8, 0))
+        ctk.CTkLabel(pinner, textvariable=self.prog_var, width=230,
+                     font=self._font(12), text_color=INK,
+                     anchor="e").pack(side="right", padx=(14, 0))
 
-        # 日志
-        logframe = ttk.LabelFrame(self, text="运行日志")
-        logframe.pack(fill="both", expand=True, padx=12, pady=8)
-        self.logbox = scrolledtext.ScrolledText(
-            logframe, wrap="word", font=("Consolas", 10),
-            bg="#1e1e1e", fg="#e6e6e6", insertbackground="#e6e6e6",
-            relief="flat", state="disabled")
-        self.logbox.pack(fill="both", expand=True, padx=6, pady=6)
+        # ---------------- 日志卡片 ----------------
+        lcard = ctk.CTkFrame(self, fg_color=CARD, corner_radius=16,
+                             border_width=1, border_color=LINE)
+        lcard.pack(fill="both", expand=True, padx=20, pady=6)
+        ctk.CTkLabel(lcard, text="运行日志", font=self._font(13, True),
+                     text_color=INK2).pack(anchor="w", padx=18, pady=(14, 2))
+        self.logbox = ctk.CTkTextbox(
+            lcard, font=ctk.CTkFont(family="Consolas", size=12),
+            fg_color=TERM_BG, text_color=TERM_FG, corner_radius=11,
+            border_width=0, wrap="word", scrollbar_button_color="#2a4860",
+            scrollbar_button_hover_color="#3a6181")
+        self.logbox.pack(fill="both", expand=True, padx=14, pady=(0, 14))
+        self.logbox.configure(state="disabled")
 
-        # 底部提示
+        # ---------------- 底部提示 ----------------
         tip = ("非官方工具 · 仅用于备份你本人的笔记　|　首次使用：先点“① 登录”扫码，"
                "再点“② 立即同步”，完成后点“③ 导出 Word”。登录态会保留几天，日常只需点②③。")
-        ttk.Label(self, text=tip, font=("微软雅黑", 8),
-                  foreground="#888", wraplength=720, justify="left").pack(
-            side="bottom", fill="x", padx=12, pady=(0, 8))
+        ctk.CTkLabel(self, text=tip, font=self._font(11), text_color=INK3,
+                     wraplength=820, justify="left", anchor="w").pack(
+            anchor="w", fill="x", padx=26, pady=(4, 14))
 
     # ------------------------------------------------------------------ 日志/状态
     def log(self, msg):
@@ -153,7 +226,8 @@ class App(tk.Tk):
     def set_progress(self, cur, total, text=None):
         def _do():
             if total and total > 0:
-                self.progress.configure(mode="determinate", maximum=total, value=cur)
+                self.progress.configure(mode="determinate")
+                self.progress.set(max(0.0, min(1.0, cur / float(total))))
             else:
                 self.progress.configure(mode="indeterminate")
             if text:
@@ -172,7 +246,7 @@ class App(tk.Tk):
     def _set_busy(self, busy):
         self.busy = busy
         state = "disabled" if busy else "normal"
-        for b in self.buttons[:3]:
+        for b in self.buttons:
             b.configure(state=state)
         self.btn_open.configure(state="normal")
 
@@ -217,7 +291,7 @@ class App(tk.Tk):
             return
         self._set_busy(True)
         self.progress.configure(mode="indeterminate")
-        self.progress.start(12)
+        self.progress.start()
 
         def log_cb(m):
             self.q.put(("log", m))
@@ -298,7 +372,8 @@ class App(tk.Tk):
 
     def _on_done(self, kind, ok, payload):
         self.progress.stop()
-        self.progress.configure(mode="determinate", value=0)
+        self.progress.configure(mode="determinate")
+        self.progress.set(0)
         self._set_busy(False)
         self._refresh_status()
         if kind == "login":
@@ -328,6 +403,8 @@ class App(tk.Tk):
 
 def main():
     try:
+        ctk.set_appearance_mode("light")
+        ctk.set_default_color_theme("blue")
         app = App()
         app.mainloop()
     except Exception as e:
