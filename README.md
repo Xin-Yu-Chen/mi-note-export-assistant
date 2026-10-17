@@ -2,9 +2,9 @@
 
 > ⚠️ **非官方社区工具**：本项目与小米公司 / 红米（Redmi）**没有任何关联、未获其授权或背书**。它只是自动化你本人在浏览器里就能做的操作，用于**备份你自己的**笔记。
 
-一个运行在 Windows 上的桌面小工具，自动登录小米云、把**你本人账号**里的笔记**增量同步**到本地并导出 Word。无需打开 F12、无需粘贴代码：**扫码登录一次 → 点「立即同步」→ 点「导出 Word」**。
+一个运行在 Windows 上的桌面小工具，自动登录小米云、把**你本人账号**里的笔记**增量同步**到本地并导出 Word。无需打开 F12、无需粘贴代码：**扫码登录一次 → 点「同步」→ 点「导出 Word」**。
 
-- 图形界面：登录 / 立即同步（增量）/ 导出 Word 三个按钮，带进度条与日志。
+- 图形界面：登录 / 同步 / 导出 Word 三个大圆角按钮，带进度条与日志。
 - **增量同步**：本地 SQLite 存全量，每次只拉“新增 / 修改”的笔记，删除的本地标记保留，每天同步通常只需几秒。
 - **开箱即用**：双击运行；自动调用系统自带的 **Edge**，无需另装浏览器。
 - 图片随笔记一起保存，导出 Word 时内嵌。
@@ -50,7 +50,7 @@
 
 ## 下载即用（Windows）
 
-到右侧 **[Releases](../../releases)** 下载 `MiNoteExportAssistant-v1.0.0-windows-x64.exe`（单文件便携版，下载后可自行重命名为「小米笔记助手.exe」），双击运行即可，**无需安装 Python**。
+**最新版 v1.1.0（界面美化版）**：直接下载 [MiNoteExportAssistant-v1.1.0-windows-x64.exe](https://github.com/Xin-Yu-Chen/mi-note-export-assistant/releases/download/v1.1.0/MiNoteExportAssistant-v1.1.0-windows-x64.exe)（单文件便携版，下载后可自行重命名为「小米笔记助手.exe」），双击运行即可，**无需安装 Python**。历史版本见 [Releases](../../releases)。
 
 > 本项目**没有购买代码签名证书**，因此首次运行可能出现 Windows 保护提示，这是未签名开源软件的常见现象：
 >
@@ -58,15 +58,16 @@
 > - **浏览器提示“不常下载”**：选择“保留” → “仍然保留”。
 > - **杀毒软件误报**：PyInstaller 单文件程序可能被误报，可加信任或改用“从源码运行”（代码完全可审计）。
 >
-> 想验证文件未被篡改：每个 Release 都附 `SHA256SUMS.txt`，下载后在该目录执行
-> `certutil -hashfile MiNoteExportAssistant-v1.0.0-windows-x64.exe SHA256`，与文件内的值比对（若已重命名，换成实际文件名即可）。
+> 想验证文件未被篡改：下载后在该目录执行
+> `certutil -hashfile MiNoteExportAssistant-v1.1.0-windows-x64.exe SHA256`，
+> 正确的 SHA-256 应为 `592fd9e9ce52f51c32462ade269ca2e5f2f417756a80f2b269cdfdb01b896d17`（下载页同样展示该值；若已重命名，换成实际文件名即可）。
 
 ### 三个按钮
 
 | 按钮 | 作用 |
 |---|---|
 | ① 登录小米账号 | 弹出 Edge，扫码登录一次，登录态保留几天 |
-| ② 立即同步（增量） | 只拉新增/修改的笔记，首次会全量 |
+| ② 同步（增量） | 只拉新增/修改的笔记，首次会全量 |
 | ③ 导出 Word | 用本地数据生成 Word（含封面、目录、分组、内嵌图片） |
 
 建议把 exe 放在一个**固定、可写的文件夹**（如 `D:\我的笔记\`），数据与导出结果都在那里生成。
@@ -121,7 +122,7 @@ py -m PyInstaller mi_note_app.spec --noconfirm
 ## 项目结构
 
 ```
-mi_note_app.py        图形界面（Tkinter）
+mi_note_app.py        图形界面（customtkinter 现代圆角 UI）
 mi_note_core.py       核心：本地数据库 + Playwright 登录 + 增量同步 + 导出
 export_mi_notes.py    Word 排版渲染（也支持 --from-json 从 JSON 生成）
 mi_note_app.spec      PyInstaller 打包配置（含图标/版本信息）
