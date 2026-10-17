@@ -13,6 +13,7 @@ cookie.txt
 build/
 dist/
 *.spec.bak
+*.bak
 *.pkg
 *.manifest
 installer/Output/
