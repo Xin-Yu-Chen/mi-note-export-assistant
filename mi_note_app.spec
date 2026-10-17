@@ -10,8 +10,9 @@ binaries = []
 hiddenimports = []
 
 # Playwright 自带 node driver 与大量 JS 资源，必须整包收集；
-# docx / PIL 一并收集，避免子模块漏装。
-for pkg in ("playwright", "docx", "PIL"):
+# docx / PIL 一并收集，避免子模块漏装；
+# customtkinter 自带主题 JSON 等数据文件，darkdetect 是其依赖，均需整包收集。
+for pkg in ("playwright", "docx", "PIL", "customtkinter", "darkdetect"):
     d, b, h = collect_all(pkg)
     datas += d
     binaries += b
