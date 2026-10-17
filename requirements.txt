@@ -2,3 +2,5 @@ playwright>=1.40
 requests>=2.31.0
 python-docx>=1.1.0
 Pillow>=10.0.0
+customtkinter>=5.2.0
+darkdetect>=0.8.0
